@@ -32,6 +32,7 @@ function FlashcardApp() {
   const { isValid, message, settings } = useSettings();
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   useSettingsButton(() => {
+    // 设置按钮 点击进入全屏态
     if (!isSettingsVisible) {
       viewport.enterFullscreenIfPossible();
     }
