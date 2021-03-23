@@ -5,6 +5,8 @@ export const ConfigKeys = Object.freeze({
   VIEW_ID: "viewId",
   QUESTION_FIELD_ID: "questionFieldId",
   ANSWER_FIELD_ID: "answerFieldId",
+  STATUS_FIELD_ID: "statusFieldId",
+  NUMBERS_FIELD_ID: "numbersFieldId",
 });
 
 /**
@@ -34,11 +36,19 @@ export function useSettings() {
   const answerField = table
     ? table.getFieldByIdIfExists(globalConfig.get(ConfigKeys.ANSWER_FIELD_ID))
     : null;
+  const statusField = table
+    ? table.getFieldByIdIfExists(globalConfig.get(ConfigKeys.STATUS_FIELD_ID))
+    : null;
+  const numbersField = table
+    ? table.getFieldByIdIfExists(globalConfig.get(ConfigKeys.NUMBERS_FIELD_ID))
+    : null;
   const settings = {
     table,
     view,
     questionField,
     answerField,
+    statusField,
+    numbersField,
   };
 
   if (!table || !view || !questionField) {

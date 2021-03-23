@@ -8,8 +8,25 @@ export default function FlashcardMagoosh({
   record,
   settings,
   shouldShowAnswer,
-  wordStatus,
+  handleUpdateRecord,
 }) {
+  console.log(record.getCellValueAsString(settings.questionField));
+  console.log(record.getCellValueAsString(settings.answerField));
+  console.log("status" + record.getCellValueAsString(settings.statusField));
+
+  const statusBackgroundColor = () => {
+    switch (record.getCellValueAsString(settings.statusField)) {
+      case "learning": {
+        return "#F6A351";
+      }
+      case "mastered": {
+        return "#37b95c";
+      }
+      default:
+        return "#f5f5f5";
+    }
+  };
+
   return (
     <Box
       width="100%"
@@ -17,10 +34,12 @@ export default function FlashcardMagoosh({
       display="flex"
       flexDirection="column"
       alignItems="center"
+      justifyContent="space-between"
     >
       <Box
-        backgroundColor={wordStatus === "untouched" ? "#f5f5f5" : "green"}
-        height="12px"
+        backgroundColor={statusBackgroundColor()}
+        marginTop="0"
+        height="10px"
         width="100%"
         borderRadius="2px 2px 0 0"
       />
@@ -28,7 +47,7 @@ export default function FlashcardMagoosh({
         display="flex"
         flexDirection="column"
         width="100%"
-        height="300px"
+        height={shouldShowAnswer ? "auto" : "100%"}
         border="none"
         borderRadius="none"
         backgroundColor="white"
@@ -48,7 +67,13 @@ export default function FlashcardMagoosh({
             {record.getCellValueAsString(settings.questionField)}
           </Text>
         ) : (
-          <Text fontSize="60px" marginBottom={2}>
+          <Text
+            fontSize="60px"
+            marginBottom="12px"
+            height="auto"
+            marginX={5}
+            lineHeight="normal"
+          >
             All done!
           </Text>
         )}
@@ -60,12 +85,15 @@ export default function FlashcardMagoosh({
       </Box>
 
       {shouldShowAnswer ? (
-        <Fragment>
+        <Box height="auto" width="100%">
           <Box
-            onClick={() => console.log("Button clicked")}
+            onClick={() => {
+              console.log("Button Clicked!");
+              handleUpdateRecord(record, "mastered");
+            }}
             pointer="cursor"
             width="100%"
-            height="52px"
+            height="50px"
             backgroundColor="#bcf5cc"
             display="flex"
             alignItems="center"
@@ -76,10 +104,10 @@ export default function FlashcardMagoosh({
             </Text>
           </Box>
           <Box
-            onClick={() => console.log("Button clicked")}
+            onClick={() => handleUpdateRecord(record, "learning")}
             pointer="cursor"
             width="100%"
-            height="52px"
+            height="50px"
             backgroundColor="#fccfd0"
             display="flex"
             alignItems="center"
@@ -90,7 +118,7 @@ export default function FlashcardMagoosh({
               ✗ I don't know this word
             </Text>
           </Box>
-        </Fragment>
+        </Box>
       ) : null}
     </Box>
   );
