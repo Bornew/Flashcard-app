@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { Table, FieldType } from "@airtable/blocks/models";
 import {
   Box,
@@ -9,21 +9,27 @@ import {
   Heading,
   TablePickerSynced,
   ViewPickerSynced,
+  SelectButtons,
 } from "@airtable/blocks/ui";
 
 import { ConfigKeys } from "./settings";
 
-export default function SettingsForm({ setIsSettingsVisible, settings }) {
-  const numberFields = settings.table.fields.filter(
-    (field) => field.type === FieldType.NUMBER
-  );
-  //   console.log(numberFields[0].name);
+export default function SettingsForm({
+  setIsSettingsVisible,
+  settings,
+  setIsRandom,
+}) {
+  const modeOptions = [
+    { value: "random", label: "Random" },
+    { value: "normal", label: "Normal" },
+  ];
+  const [value, setValue] = useState(modeOptions[0].value);
   return (
     <Box
       flex="none"
       display="flex"
       flexDirection="column"
-      width="280px"
+      width="260px"
       backgroundColor="white"
       maxHeight="100vh"
       borderLeft="thick"
@@ -81,7 +87,19 @@ export default function SettingsForm({ setIsSettingsVisible, settings }) {
             </FormField>
           </Fragment>
         )}
+        {/* <FormField label="Select a mode">
+          <SelectButtons
+            value={value}
+            onChange={(newValue) => {
+              setValue(newValue);
+              setIsRandom(newValue == modeOptions[0] ? false : true);
+              console.log(newValue);
+            }}
+            options={modeOptions}
+          />
+        </FormField> */}
       </Box>
+
       <Box
         flex="none"
         display="flex"

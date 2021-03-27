@@ -2,38 +2,47 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Field, Record } from "@airtable/blocks/models";
-import { Box, Button, expandRecord, Text } from "@airtable/blocks/ui";
+import { Box, Button, expandRecord, Text, Icon } from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
 import Congratscard from "./Congratscard";
 import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRandom, faRedo } from "@fortawesome/fontawesome-free-solid";
 /**
  * Responsible for picking a random record from the given records.
  * Keeps track of removed records.
  */
 export default function FlashcardContainer({ records, settings }) {
-  const randomSequence = false;
-  const [record, setRecord] = useState(_.sample(records));
+  const [isRandom, setIsRandom] = useState(true);
   let recordIterator = records.values();
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
   const [learningRecordsSet, setLearningRecordsSet] = useState(
-    new Set(
-      records.filter(
-        (r) =>
-          r.getCellValue(settings.statusField) &&
-          r.getCellValue(settings.statusField).name === STATUS_TYPES.LEARNING
-      )
-    )
+    settings.statusField
+      ? new Set(
+          records.filter(
+            (r) =>
+              r.getCellValue(settings.statusField) &&
+              r.getCellValue(settings.statusField).name ===
+                STATUS_TYPES.LEARNING
+          )
+        )
+      : new Set()
   ); //学习中
   const [masteredRecordsSet, setMasteredRecordsSet] = useState(
-    new Set(
-      records.filter(
-        (r) =>
-          r.getCellValue(settings.statusField) &&
-          r.getCellValue(settings.statusField).name === STATUS_TYPES.MASTERED
-      )
-    )
+    settings.statusField
+      ? new Set(
+          records.filter(
+            (r) =>
+              r.getCellValue(settings.statusField) &&
+              r.getCellValue(settings.statusField).name ===
+                STATUS_TYPES.MASTERED
+          )
+        )
+      : new Set()
   ); //已掌握
+  const [record, setRecord] = useState(
+    _.sample(records.filter((r) => r !== record && !masteredRecordsSet.has(r)))
+  );
   const [masteredRecordsNum, setMasteredRecordsNum] = useState(
     masteredRecordsSet.size
   );
@@ -43,10 +52,15 @@ export default function FlashcardContainer({ records, settings }) {
   const [completeStatus, setCompleteStatus] = useState(false);
   const flashCardRef = useRef();
 
+  function handleCheckRandom(event) {
+    setIsRandom(event.currentTarget.checked);
+  }
   function handleUpdateRecord(record, status) {
-    settings.table.updateRecordAsync(record, {
-      [settings.statusField.id]: { name: status },
-    });
+    settings.statusField
+      ? settings.table.updateRecordAsync(record, {
+          [settings.statusField.id]: { name: status },
+        })
+      : "";
 
     switch (status) {
       case STATUS_TYPES.MASTERED: {
@@ -65,13 +79,15 @@ export default function FlashcardContainer({ records, settings }) {
           setLearningRecordsSet(newLearningRecordsSet);
           setLearningRecordsNum(learningRecordsNum - 1);
         }
-        settings.table.updateRecordAsync(record, {
-          [settings.numbersField.id]: record.getCellValue(
-            settings.numbersField.name
-          )
-            ? record.getCellValue(settings.numbersField.name) + 1
-            : 1,
-        });
+        settings.numbersField
+          ? settings.table.updateRecordAsync(record, {
+              [settings.numbersField.id]: record.getCellValue(
+                settings.numbersField.name
+              )
+                ? record.getCellValue(settings.numbersField.name) + 1
+                : 1,
+            })
+          : "";
         handleToggleRecord();
         break;
       }
@@ -105,21 +121,16 @@ export default function FlashcardContainer({ records, settings }) {
   }
 
   function handleNewRecord() {
-    // console.log(recordIterator.next());
-    for (let learningRecord of learningRecordsSet) {
-      console.log(
-        "learningRecord",
-        learningRecord.getCellValue(settings.questionField)
+    if (isRandom) {
+      setRecord(
+        _.sample(
+          records.filter((r) => r !== record && !masteredRecordsSet.has(r))
+        )
       );
+    } else {
+      console.log("ordered", recordIterator.next().type);
     }
-    setRecord(
-      _.sample(
-        records.filter((r) => r !== record && !masteredRecordsSet.has(r))
-      )
-    );
   }
-
-  function handleNewRecordSequence() {}
 
   function reset() {
     setRecord(_.sample(records));
@@ -211,11 +222,13 @@ export default function FlashcardContainer({ records, settings }) {
           height="44px"
           backgroundColor="#bcf5cc"
           display="flex"
+          flexDirection="row"
           alignItems="center"
           justifyContent="center"
           borderRadius="0 0 4px 4px"
         >
-          <Text fontSize="16px" textColor="#37b95c">
+          <Icon name="redo" size={16} fillColor="#37b95c" />
+          <Text fontSize="16px" textColor="#37b95c" marginX="6px">
             Restart
           </Text>
         </Box>
@@ -240,6 +253,40 @@ export default function FlashcardContainer({ records, settings }) {
           align-items="center"
         >
           <Box
+            display="flex"
+            width="100%"
+            flexDirection="row"
+            justifyContent="space-between"
+            marginBottom="16px"
+          >
+            <Box display="flex" flexDirection="row" alignItems="center">
+              <FontAwesomeIcon icon={faRandom} color="rgba(0, 0, 0, 0.6)" />
+              <Text
+                fontSize="12px"
+                color="rgba(0, 0, 0, 0.6)"
+                marginX="8px"
+                fontWeight="300"
+              >
+                Words you don't know will reappear later
+              </Text>
+            </Box>
+            {/* <Box display="flex" flexDirection="row" alignItems="center">
+              <input
+                type="checkbox"
+                checked={isRandom}
+                onChange={handleCheckRandom}
+              />
+              <Text
+                fontSize="12px"
+                color="rgba(0, 0, 0, 0.6)"
+                marginX="8px 0"
+                fontWeight="300"
+              >
+                Random Mode
+              </Text>
+            </Box> */}
+          </Box>
+          <Box
             marginBottom={3}
             width="100%"
             height="320px"
@@ -258,22 +305,12 @@ export default function FlashcardContainer({ records, settings }) {
                 shouldShowAnswer={shouldShowAnswer}
               />
             ) : (
-              <Congratscard congratsSentence="🎉 Congrats!" />
+              <Congratscard />
             )}
             {btnGroup}
           </Box>
           <Box marginTop="16px">
-            <Box display="flex" flexDirection="row">
-              <Text fontSize="14px">You have mastered&nbsp;</Text>
-              <Text fontSize="14px" fontWeight="500">
-                {masteredRecordsNum}&nbsp;
-              </Text>
-              <Text fontSize="14px">records;&nbsp;</Text>
-              <Text fontSize="14px" fontWeight="500">
-                {learningRecordsNum}&nbsp;
-              </Text>
-              <Text fontSize="14px">records need to be reviewed.</Text>
-            </Box>
+            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} records; ${learningRecordsNum} records still need to be reviewed`}</Text>
             <Box
               marginTop="6px"
               height="24px"

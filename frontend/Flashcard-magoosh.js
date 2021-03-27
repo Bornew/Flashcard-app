@@ -45,7 +45,7 @@ export default function FlashcardMagoosh({
       <Box
         display="flex"
         flexDirection="column"
-        width="100%"
+        width="90%"
         height={shouldShowAnswer ? "auto" : "100%"}
         border="none"
         borderRadius="4px"

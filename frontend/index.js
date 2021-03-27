@@ -14,12 +14,12 @@ import SettingsForm from "./SettingsForm";
 
 // Determines the maximum size of the app in fullscreen mode.
 viewport.addMaxFullscreenSize({
-  height: 620,
-  width: 840,
+  height: 640,
+  width: 880,
 });
 
 viewport.addMinSize({
-  height: 260,
+  height: 300,
   width: 400,
 });
 
@@ -31,6 +31,7 @@ viewport.addMinSize({
 function FlashcardApp() {
   const { isValid, message, settings } = useSettings();
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [isRandom, setIsRandom] = useState(true);
   useSettingsButton(() => {
     if (!isSettingsVisible) {
       viewport.enterFullscreenIfPossible();
@@ -58,7 +59,11 @@ function FlashcardApp() {
     >
       <Box display="flex" flexDirection="column" flex="auto">
         {isValid ? (
-          <FlashcardContainer records={records} settings={settings} />
+          <FlashcardContainer
+            records={records}
+            settings={settings}
+            isRandom={isRandom}
+          />
         ) : (
           <Box
             display="flex"

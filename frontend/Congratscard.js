@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { Field, Record } from "@airtable/blocks/models";
 import { Box, Text, Button, Icon } from "@airtable/blocks/ui";
 
-export default function Congratscard({ congratsSentence }) {
+export default function Congratscard() {
   return (
     <Box
       width="100%"
@@ -21,7 +21,7 @@ export default function Congratscard({ congratsSentence }) {
       <Box
         display="flex"
         flexDirection="column"
-        width="100%"
+        width="90%"
         height="100%"
         border="none"
         borderRadius="none"
@@ -30,8 +30,11 @@ export default function Congratscard({ congratsSentence }) {
         justifyContent="center"
         overflow="hidden"
       >
-        <Text fontSize="60px" marginBottom="12px" height="auto" marginX={5}>
-          {congratsSentence}
+        <Text fontSize="40px" lineHeight="44px" marginBottom="24px">
+          🎉 Congrats!
+        </Text>
+        <Text fontSize="16px" lineHeight="14px">
+          You have completed this learning session
         </Text>
       </Box>
     </Box>
