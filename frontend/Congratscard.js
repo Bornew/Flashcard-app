@@ -16,7 +16,7 @@ export default function Congratscard({ congratsSentence }) {
         marginTop="0"
         height="10px"
         width="100%"
-        borderRadius="2px 2px 0 0"
+        borderRadius="6px 6px 0 0"
       />
       <Box
         display="flex"

@@ -40,7 +40,7 @@ export default function FlashcardMagoosh({
         marginTop="0"
         height="10px"
         width="100%"
-        borderRadius="2px 2px 0 0"
+        borderRadius="4px 4px 0 0"
       />
       <Box
         display="flex"
@@ -48,7 +48,7 @@ export default function FlashcardMagoosh({
         width="100%"
         height={shouldShowAnswer ? "auto" : "100%"}
         border="none"
-        borderRadius="none"
+        borderRadius="4px"
         backgroundColor="white"
         alignItems="center"
         justifyContent="center"

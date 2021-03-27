@@ -11,16 +11,36 @@ import Congratscard from "./Congratscard";
  * Keeps track of removed records.
  */
 export default function FlashcardContainer({ records, settings }) {
+  const randomSequence = false;
   const [record, setRecord] = useState(_.sample(records));
+  let recordIterator = records.values();
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
-  const [learningRecordsSet, setLearningRecordsSet] = useState(new Set()); //学习中
-  const [masteredRecordsSet, setMasteredRecordsSet] = useState(new Set()); //已掌握
-  const [masteredRecordsNum, setMasteredRecordsNum] = useState(0);
-  const [learningRecordsNum, setLearningRecordsNum] = useState(0);
+  const [learningRecordsSet, setLearningRecordsSet] = useState(
+    new Set(
+      records.filter(
+        (r) =>
+          r.getCellValue(settings.statusField) &&
+          r.getCellValue(settings.statusField).name === "learning"
+      )
+    )
+  ); //学习中
+  const [masteredRecordsSet, setMasteredRecordsSet] = useState(
+    new Set(
+      records.filter(
+        (r) =>
+          r.getCellValue(settings.statusField) &&
+          r.getCellValue(settings.statusField).name === "mastered"
+      )
+    )
+  ); //已掌握
+  const [masteredRecordsNum, setMasteredRecordsNum] = useState(
+    masteredRecordsSet.size
+  );
+  const [learningRecordsNum, setLearningRecordsNum] = useState(
+    learningRecordsSet.size
+  );
   const [completeStatus, setCompleteStatus] = useState(false);
   const flashCardRef = useRef();
-  //   console.log(records);
-  console.log("共有" + records.length + "个单词");
 
   function handleUpdateRecord(record, status) {
     settings.table.updateRecordAsync(record, {
@@ -30,10 +50,19 @@ export default function FlashcardContainer({ records, settings }) {
     switch (status) {
       case "mastered": {
         // 如果status是mastered，并且愿状态不是mastered，更新原record，同时更新masteredRecordsSet
+        // 如果在 learning 中，则需要移除
+
         if (!masteredRecordsSet.has(record)) {
           const newMasteredRecordsSet = new Set(masteredRecordsSet);
           setMasteredRecordsSet(newMasteredRecordsSet.add(record));
           setMasteredRecordsNum(masteredRecordsNum + 1);
+        }
+        if (learningRecordsSet.has(record)) {
+          console.log("learningRecord has this word!");
+          const newLearningRecordsSet = new Set(learningRecordsSet);
+          newLearningRecordsSet.delete(record);
+          setLearningRecordsSet(newLearningRecordsSet);
+          setLearningRecordsNum(learningRecordsNum - 1);
         }
         settings.table.updateRecordAsync(record, {
           [settings.numbersField.id]: record.getCellValue(
@@ -47,11 +76,19 @@ export default function FlashcardContainer({ records, settings }) {
       }
       case "learning": {
         // 如果status是learning，并且原状态不是learning，更新原record，同时更新learningRecordsSet
+        // 如果在mastered中，则需要移除
 
         if (!learningRecordsSet.has(record)) {
           const newLearningRecordsSet = new Set(learningRecordsSet);
           setLearningRecordsSet(newLearningRecordsSet.add(record));
           setLearningRecordsNum(learningRecordsNum + 1);
+        }
+        if (masteredRecordsSet.has(record)) {
+          console.log("masteredRecord has this word!");
+          const newMasteredRecordsSet = new Set(masteredRecordsSet);
+          newMasteredRecordsSet.delete(record);
+          setMasteredRecordsSet(newMasteredRecordsSet);
+          setMasteredRecordsNum(masteredRecordsNum - 1);
         }
         handleToggleRecord();
         break;
@@ -67,7 +104,7 @@ export default function FlashcardContainer({ records, settings }) {
   }
 
   function handleNewRecord() {
-    console.log("new records!");
+    // console.log(recordIterator.next());
     for (let learningRecord of learningRecordsSet) {
       console.log(
         "learningRecord",
@@ -76,20 +113,19 @@ export default function FlashcardContainer({ records, settings }) {
     }
     setRecord(
       _.sample(
-        records.filter(
-          (r) =>
-            r !== record &&
-            !learningRecordsSet.has(r) &&
-            !masteredRecordsSet.has(r)
-        )
+        records.filter((r) => r !== record && !masteredRecordsSet.has(r))
       )
     );
   }
 
+  function handleNewRecordSequence() {}
+
   function reset() {
-    // setLearningRecordsSet(new Set());
-    // setMasteredRecordsSet(new Set());
     setRecord(_.sample(records));
+    setMasteredRecordsSet(new Set());
+    setLearningRecordsSet(new Set());
+    setMasteredRecordsNum(0);
+    setLearningRecordsNum(0);
   }
 
   // Handle updating record and removedRecordsSet due to records changing
@@ -119,6 +155,9 @@ export default function FlashcardContainer({ records, settings }) {
     if (!allRecordsSet.has(record)) {
       handleNewRecord();
     }
+    console.log(
+      `There are ${records.length} records in this table view. You have mastered ${masteredRecordsNum} records, ${learningRecordsNum} records still need to be reviewed.`
+    );
   }, [records]);
   let btnGroup;
   if (record) {
@@ -137,7 +176,7 @@ export default function FlashcardContainer({ records, settings }) {
           alignItems="center"
           justifyContent="center"
         >
-          <Text fontSize="12px" textColor="#37b95c">
+          <Text fontSize="14px" textColor="#37b95c">
             ✓ I know it
           </Text>
         </Box>
@@ -150,10 +189,10 @@ export default function FlashcardContainer({ records, settings }) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          borderRadius="0 0 2px 2px"
+          borderRadius="0 0 4px 4px"
         >
-          <Text fontSize="12px" textColor="#d9595d">
-            ✗ I don't know this word
+          <Text fontSize="14px" textColor="#d9595d">
+            ✗ I don't know
           </Text>
         </Box>
       </Box>
@@ -173,7 +212,7 @@ export default function FlashcardContainer({ records, settings }) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          borderRadius="0 0 2px 2px"
+          borderRadius="0 0 4px 4px"
         >
           <Text fontSize="12px" textColor="#37b95c">
             Restart
@@ -206,9 +245,10 @@ export default function FlashcardContainer({ records, settings }) {
             display="flex"
             flexDirection="column"
             alignItems="center"
-            boxShadow="0 1px 2px rgb(0 0 0 / 10%)"
+            boxShadow="0 4px 6px rgb(0 0 0 / 10%)"
             onClick={handleToggleRecord}
             style={{ cursor: "pointer" }}
+            borderRadius="4px"
           >
             {record ? (
               <FlashcardMagoosh
@@ -223,7 +263,7 @@ export default function FlashcardContainer({ records, settings }) {
             {btnGroup}
           </Box>
           <Box marginTop="12px">
-            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} words; ${learningRecordsNum} words still need reviewing`}</Text>
+            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} records; ${learningRecordsNum} records still need to be reviewed`}</Text>
             <Box
               marginTop="6px"
               height="24px"
