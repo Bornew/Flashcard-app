@@ -68,6 +68,7 @@ export default function SettingsForm({ setIsSettingsVisible, settings }) {
                 table={settings.table}
                 shouldAllowPickingNone={true}
                 globalConfigKey={ConfigKeys.STATUS_FIELD_ID}
+                allowedTypes={[FieldType.SINGLE_SELECT]}
               />
             </FormField>
             <FormField label="Numbers field (optional)">
@@ -75,6 +76,7 @@ export default function SettingsForm({ setIsSettingsVisible, settings }) {
                 table={settings.table}
                 shouldAllowPickingNone={true}
                 globalConfigKey={ConfigKeys.NUMBERS_FIELD_ID}
+                allowedTypes={[FieldType.NUMBER]}
               />
             </FormField>
           </Fragment>

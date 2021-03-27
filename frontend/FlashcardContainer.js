@@ -5,6 +5,7 @@ import { Field, Record } from "@airtable/blocks/models";
 import { Box, Button, expandRecord, Text } from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
 import Congratscard from "./Congratscard";
+import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
 
 /**
  * Responsible for picking a random record from the given records.
@@ -20,7 +21,7 @@ export default function FlashcardContainer({ records, settings }) {
       records.filter(
         (r) =>
           r.getCellValue(settings.statusField) &&
-          r.getCellValue(settings.statusField).name === "learning"
+          r.getCellValue(settings.statusField).name === STATUS_TYPES.LEARNING
       )
     )
   ); //学习中
@@ -29,7 +30,7 @@ export default function FlashcardContainer({ records, settings }) {
       records.filter(
         (r) =>
           r.getCellValue(settings.statusField) &&
-          r.getCellValue(settings.statusField).name === "mastered"
+          r.getCellValue(settings.statusField).name === STATUS_TYPES.MASTERED
       )
     )
   ); //已掌握
@@ -48,7 +49,7 @@ export default function FlashcardContainer({ records, settings }) {
     });
 
     switch (status) {
-      case "mastered": {
+      case STATUS_TYPES.MASTERED: {
         // 如果status是mastered，并且愿状态不是mastered，更新原record，同时更新masteredRecordsSet
         // 如果在 learning 中，则需要移除
 
@@ -74,7 +75,7 @@ export default function FlashcardContainer({ records, settings }) {
         handleToggleRecord();
         break;
       }
-      case "learning": {
+      case STATUS_TYPES.LEARNING: {
         // 如果status是learning，并且原状态不是learning，更新原record，同时更新learningRecordsSet
         // 如果在mastered中，则需要移除
 
@@ -166,11 +167,11 @@ export default function FlashcardContainer({ records, settings }) {
         <Box
           onClick={() => {
             console.log("Button Clicked!");
-            handleUpdateRecord(record, "mastered");
+            handleUpdateRecord(record, STATUS_TYPES.MASTERED);
           }}
           pointer="cursor"
           width="100%"
-          height="50px"
+          height="44px"
           backgroundColor="#bcf5cc"
           display="flex"
           alignItems="center"
@@ -181,10 +182,10 @@ export default function FlashcardContainer({ records, settings }) {
           </Text>
         </Box>
         <Box
-          onClick={() => handleUpdateRecord(record, "learning")}
+          onClick={() => handleUpdateRecord(record, STATUS_TYPES.LEARNING)}
           pointer="cursor"
           width="100%"
-          height="50px"
+          height="44px"
           backgroundColor="#fccfd0"
           display="flex"
           alignItems="center"
@@ -207,14 +208,14 @@ export default function FlashcardContainer({ records, settings }) {
           }}
           pointer="cursor"
           width="100%"
-          height="50px"
+          height="44px"
           backgroundColor="#bcf5cc"
           display="flex"
           alignItems="center"
           justifyContent="center"
           borderRadius="0 0 4px 4px"
         >
-          <Text fontSize="12px" textColor="#37b95c">
+          <Text fontSize="16px" textColor="#37b95c">
             Restart
           </Text>
         </Box>
@@ -241,7 +242,7 @@ export default function FlashcardContainer({ records, settings }) {
           <Box
             marginBottom={3}
             width="100%"
-            height="300px"
+            height="320px"
             display="flex"
             flexDirection="column"
             alignItems="center"
@@ -255,15 +256,24 @@ export default function FlashcardContainer({ records, settings }) {
                 record={record}
                 settings={settings}
                 shouldShowAnswer={shouldShowAnswer}
-                handleUpdateRecord={handleUpdateRecord}
               />
             ) : (
               <Congratscard congratsSentence="🎉 Congrats!" />
             )}
             {btnGroup}
           </Box>
-          <Box marginTop="12px">
-            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} records; ${learningRecordsNum} records still need to be reviewed`}</Text>
+          <Box marginTop="16px">
+            <Box display="flex" flexDirection="row">
+              <Text fontSize="14px">You have mastered&nbsp;</Text>
+              <Text fontSize="14px" fontWeight="500">
+                {masteredRecordsNum}&nbsp;
+              </Text>
+              <Text fontSize="14px">records;&nbsp;</Text>
+              <Text fontSize="14px" fontWeight="500">
+                {learningRecordsNum}&nbsp;
+              </Text>
+              <Text fontSize="14px">records need to be reviewed.</Text>
+            </Box>
             <Box
               marginTop="6px"
               height="24px"

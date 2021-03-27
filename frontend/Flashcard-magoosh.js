@@ -2,21 +2,21 @@ import PropTypes from "prop-types";
 import React, { Fragment } from "react";
 import { Field, Record } from "@airtable/blocks/models";
 import CustomCellRenderer from "./CustomCellRenderer";
-import { Box, Text, Button, Icon } from "@airtable/blocks/ui";
+import { Box, Text, Button, Icon, CellRenderer } from "@airtable/blocks/ui";
+import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
 
 export default function FlashcardMagoosh({
   record,
   settings,
   shouldShowAnswer,
-  handleUpdateRecord,
 }) {
   const statusBackgroundColor = () => {
     if (record) {
       switch (record.getCellValueAsString(settings.statusField)) {
-        case "learning": {
+        case STATUS_TYPES.LEARNING: {
           return "#F6A351";
         }
-        case "mastered": {
+        case STATUS_TYPES.MASTERED: {
           return "#37b95c";
         }
         default:
@@ -54,20 +54,28 @@ export default function FlashcardMagoosh({
         justifyContent="center"
         overflow="hidden"
       >
-        <Text
-          fontSize={shouldShowAnswer ? "40px" : "60px"}
-          marginTop={shouldShowAnswer ? "48px" : "0"}
-          marginBottom="12px"
+        <Box
+          marginTop={shouldShowAnswer ? "56px" : "0"}
+          marginBottom={shouldShowAnswer ? "20px" : "0"}
           height="auto"
           marginX={5}
-          lineHeight="normal"
         >
-          {record.getCellValueAsString(settings.questionField)}
-        </Text>
+          <CustomCellRenderer
+            record={record}
+            field={settings.questionField}
+            itemType={
+              shouldShowAnswer ? ITEM_TYPES.QUESTION_SMALL : ITEM_TYPES.QUESTION
+            }
+          />
+        </Box>
         {settings.answerField && shouldShowAnswer ? (
-          <Text fontSize="16px">
-            {record.getCellValueAsString(settings.answerField)}
-          </Text>
+          <Box marginBottom="12px">
+            <CustomCellRenderer
+              record={record}
+              field={settings.answerField}
+              itemType={ITEM_TYPES.ANSWER}
+            />
+          </Box>
         ) : null}
       </Box>
     </Box>

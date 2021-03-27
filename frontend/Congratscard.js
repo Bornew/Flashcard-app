@@ -30,13 +30,7 @@ export default function Congratscard({ congratsSentence }) {
         justifyContent="center"
         overflow="hidden"
       >
-        <Text
-          fontSize="60px"
-          marginBottom="12px"
-          height="auto"
-          marginX={5}
-          lineHeight="normal"
-        >
+        <Text fontSize="60px" marginBottom="12px" height="auto" marginX={5}>
           {congratsSentence}
         </Text>
       </Box>
