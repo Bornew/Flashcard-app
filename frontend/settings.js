@@ -22,6 +22,18 @@ export const ConfigKeys = Object.freeze({
  *  message?: string}}
  */
 export function useSettings() {
+  /**
+   * 读取当前view全部数据
+   * 可以选择 status 为 single select
+   *
+   * 要求设置status，获取status的颜色（status必须是single select）
+   * 要求设置“mastered”和“learning”状态对应status哪一项
+   * 要求设置numbers，如果设置的是
+   *
+   * 读取当前status 为 mastered ｜ learning ｜ 状态的数据
+   * 逻辑是 状态设置为多少级，就会有多少个选项 刚开始应该获取status列表
+   * 例如：status：{mastered，untouched}；status：{mastered}
+   */
   const base = useBase();
   const globalConfig = useGlobalConfig();
   const table = base.getTableByIdIfExists(

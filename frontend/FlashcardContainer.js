@@ -4,6 +4,7 @@ import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Field, Record } from "@airtable/blocks/models";
 import { Box, Button, expandRecord, Text } from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
+import Congratscard from "./Congratscard";
 
 /**
  * Responsible for picking a random record from the given records.
@@ -11,35 +12,31 @@ import FlashcardMagoosh from "./Flashcard-magoosh";
  */
 export default function FlashcardContainer({ records, settings }) {
   const [record, setRecord] = useState(_.sample(records));
-  const [removedRecordsSet, setRemovedRecordsSet] = useState(new Set());
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
   const [learningRecordsSet, setLearningRecordsSet] = useState(new Set()); //学习中
   const [masteredRecordsSet, setMasteredRecordsSet] = useState(new Set()); //已掌握
   const [masteredRecordsNum, setMasteredRecordsNum] = useState(0);
   const [learningRecordsNum, setLearningRecordsNum] = useState(0);
+  const [completeStatus, setCompleteStatus] = useState(false);
   const flashCardRef = useRef();
   //   console.log(records);
   console.log("共有" + records.length + "个单词");
 
   function handleUpdateRecord(record, status) {
-    console.log(
-      record.getCellValue(settings.numbersField),
-      record.getCellValue(settings.statusField).name,
-      status
-    );
-
     settings.table.updateRecordAsync(record, {
-      [settings.statusField.name]: { name: status },
+      [settings.statusField.id]: { name: status },
     });
 
     switch (status) {
       case "mastered": {
-        // 如果status是mastered，更新原record，同时更新masteredRecordsSet
-        const newMasteredRecordsSet = new Set(masteredRecordsSet);
-        setMasteredRecordsSet(newMasteredRecordsSet.add(record));
-        setMasteredRecordsNum(masteredRecordsNum + 1);
+        // 如果status是mastered，并且愿状态不是mastered，更新原record，同时更新masteredRecordsSet
+        if (!masteredRecordsSet.has(record)) {
+          const newMasteredRecordsSet = new Set(masteredRecordsSet);
+          setMasteredRecordsSet(newMasteredRecordsSet.add(record));
+          setMasteredRecordsNum(masteredRecordsNum + 1);
+        }
         settings.table.updateRecordAsync(record, {
-          [settings.numbersField.name]: record.getCellValue(
+          [settings.numbersField.id]: record.getCellValue(
             settings.numbersField.name
           )
             ? record.getCellValue(settings.numbersField.name) + 1
@@ -49,10 +46,13 @@ export default function FlashcardContainer({ records, settings }) {
         break;
       }
       case "learning": {
-        // 如果status是learning，更新原record，同时更新learningRecordsSet
-        const newLearningRecordsSet = new Set(learningRecordsSet);
-        setLearningRecordsSet(newLearningRecordsSet.add(record));
-        setLearningRecordsNum(learningRecordsNum + 1);
+        // 如果status是learning，并且原状态不是learning，更新原record，同时更新learningRecordsSet
+
+        if (!learningRecordsSet.has(record)) {
+          const newLearningRecordsSet = new Set(learningRecordsSet);
+          setLearningRecordsSet(newLearningRecordsSet.add(record));
+          setLearningRecordsNum(learningRecordsNum + 1);
+        }
         handleToggleRecord();
         break;
       }
@@ -67,6 +67,13 @@ export default function FlashcardContainer({ records, settings }) {
   }
 
   function handleNewRecord() {
+    console.log("new records!");
+    for (let learningRecord of learningRecordsSet) {
+      console.log(
+        "learningRecord",
+        learningRecord.getCellValue(settings.questionField)
+      );
+    }
     setRecord(
       _.sample(
         records.filter(
@@ -80,10 +87,8 @@ export default function FlashcardContainer({ records, settings }) {
   }
 
   function reset() {
-    setLearningRecordsSet(new Set());
-    setMasteredRecordsSet(new Set());
-    // Can't use handleNewRecord here because setting state is async, so removedRecordsSet won't
-    // be updated yet.
+    // setLearningRecordsSet(new Set());
+    // setMasteredRecordsSet(new Set());
     setRecord(_.sample(records));
   }
 
@@ -92,22 +97,91 @@ export default function FlashcardContainer({ records, settings }) {
     const allRecordsSet = new Set(records);
     const newLearningRecordsSet = new Set();
     const newMasteredRecordsSet = new Set();
-    for (const removedRecord of removedRecordsSet) {
-      if (allRecordsSet.has(removedRecord)) {
-        newRemovedRecordsSet.add(removedRecord);
+    for (const learningRecord of learningRecordsSet) {
+      if (allRecordsSet.has(learningRecord)) {
+        newLearningRecordsSet.add(learningRecord);
+      }
+    }
+    for (const masteredRecord of masteredRecordsSet) {
+      if (allRecordsSet.has(masteredRecord)) {
+        newMasteredRecordsSet.add(masteredRecord);
       }
     }
     if (newLearningRecordsSet.size !== learningRecordsSet.size) {
+      console.log(newLearningRecordsSet.size, learningRecordsSet.size);
       setLearningRecordsSet(newLearningRecordsSet);
+      console.log(learningRecordsSet);
     }
     if (newMasteredRecordsSet.size !== masteredRecordsSet.size) {
+      console.log(newMasteredRecordsSet.size, masteredRecordsSet.size);
       setMasteredRecordsSet(newMasteredRecordsSet);
     }
     if (!allRecordsSet.has(record)) {
       handleNewRecord();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [records]);
+  let btnGroup;
+  if (record) {
+    btnGroup = shouldShowAnswer ? (
+      <Box height="auto" width="100%">
+        <Box
+          onClick={() => {
+            console.log("Button Clicked!");
+            handleUpdateRecord(record, "mastered");
+          }}
+          pointer="cursor"
+          width="100%"
+          height="50px"
+          backgroundColor="#bcf5cc"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Text fontSize="12px" textColor="#37b95c">
+            ✓ I know it
+          </Text>
+        </Box>
+        <Box
+          onClick={() => handleUpdateRecord(record, "learning")}
+          pointer="cursor"
+          width="100%"
+          height="50px"
+          backgroundColor="#fccfd0"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="0 0 2px 2px"
+        >
+          <Text fontSize="12px" textColor="#d9595d">
+            ✗ I don't know this word
+          </Text>
+        </Box>
+      </Box>
+    ) : null;
+  } else {
+    btnGroup = (
+      <Box height="auto" width="100%">
+        <Box
+          onClick={() => {
+            console.log("Restart!");
+            reset();
+          }}
+          pointer="cursor"
+          width="100%"
+          height="50px"
+          backgroundColor="#bcf5cc"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="0 0 2px 2px"
+        >
+          <Text fontSize="12px" textColor="#37b95c">
+            Restart
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Fragment>
@@ -136,15 +210,20 @@ export default function FlashcardContainer({ records, settings }) {
             onClick={handleToggleRecord}
             style={{ cursor: "pointer" }}
           >
-            <FlashcardMagoosh
-              record={record}
-              settings={settings}
-              shouldShowAnswer={shouldShowAnswer}
-              handleUpdateRecord={handleUpdateRecord}
-            />
+            {record ? (
+              <FlashcardMagoosh
+                record={record}
+                settings={settings}
+                shouldShowAnswer={shouldShowAnswer}
+                handleUpdateRecord={handleUpdateRecord}
+              />
+            ) : (
+              <Congratscard congratsSentence="🎉 Congrats!" />
+            )}
+            {btnGroup}
           </Box>
           <Box marginTop="12px">
-            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} words; ${learningRecordsNum} words still needs reviewing`}</Text>
+            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} words; ${learningRecordsNum} words still need reviewing`}</Text>
             <Box
               marginTop="6px"
               height="24px"

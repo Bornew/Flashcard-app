@@ -57,10 +57,9 @@ export default function SettingsForm({ setIsSettingsVisible, settings }) {
                 globalConfigKey={ConfigKeys.QUESTION_FIELD_ID}
               />
             </FormField>
-            <FormField label="Answer field (optional)">
+            <FormField label="Answer field">
               <FieldPickerSynced
                 table={settings.table}
-                shouldAllowPickingNone={true}
                 globalConfigKey={ConfigKeys.ANSWER_FIELD_ID}
               />
             </FormField>
