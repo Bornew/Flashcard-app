@@ -8,6 +8,7 @@ import Congratscard from "./Congratscard";
 import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRandom, faRedo } from "@fortawesome/fontawesome-free-solid";
+import ProgressBar from "./ProgressBar";
 /**
  * Responsible for picking a random record from the given records.
  * Keeps track of removed records.
@@ -16,13 +17,14 @@ export default function FlashcardContainer({ records, settings }) {
   const [isRandom, setIsRandom] = useState(true);
   let recordIterator = records.values();
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
+  //   const [recordStatus, setRecordStatus] = useState(null);
   const [learningRecordsSet, setLearningRecordsSet] = useState(
     settings.statusField
       ? new Set(
           records.filter(
             (r) =>
               r.getCellValue(settings.statusField) &&
-              r.getCellValue(settings.statusField).name ===
+              r.getCellValueAsString(settings.statusField) ===
                 STATUS_TYPES.LEARNING
           )
         )
@@ -55,6 +57,7 @@ export default function FlashcardContainer({ records, settings }) {
   function handleCheckRandom(event) {
     setIsRandom(event.currentTarget.checked);
   }
+
   function handleUpdateRecord(record, status) {
     settings.statusField
       ? settings.table.updateRecordAsync(record, {
@@ -82,9 +85,9 @@ export default function FlashcardContainer({ records, settings }) {
         settings.numbersField
           ? settings.table.updateRecordAsync(record, {
               [settings.numbersField.id]: record.getCellValue(
-                settings.numbersField.name
+                settings.numbersField
               )
-                ? record.getCellValue(settings.numbersField.name) + 1
+                ? record.getCellValue(settings.numbersField) + 1
                 : 1,
             })
           : "";
@@ -132,6 +135,34 @@ export default function FlashcardContainer({ records, settings }) {
     }
   }
 
+  function getStatus() {
+    if (record && settings.statusField) {
+      // if the user specifies the statusField, use the previous status value as the background color;
+      let statusCellValue = record.getCellValueAsString(settings.statusField);
+      console.log(statusCellValue);
+      switch (statusCellValue) {
+        case STATUS_TYPES.LEARNING: {
+          return STATUS_TYPES.LEARNING;
+        }
+        case STATUS_TYPES.MASTERED: {
+          return STATUS_TYPES.MASTERED;
+        }
+        default:
+          return null;
+      }
+    } else if (record) {
+      // otherwise use the status value in the local storage
+      if (masteredRecordsSet.has(record)) {
+        console.log("yes you have mastered!");
+        return STATUS_TYPES.MASTERED;
+      } else if (learningRecordsSet.has(record)) {
+        console.log("word is learning");
+        return STATUS_TYPES.LEARNING;
+      } else {
+        return null;
+      }
+    }
+  }
   function reset() {
     setRecord(_.sample(records));
     setMasteredRecordsSet(new Set());
@@ -303,50 +334,18 @@ export default function FlashcardContainer({ records, settings }) {
                 record={record}
                 settings={settings}
                 shouldShowAnswer={shouldShowAnswer}
+                recordStatus={getStatus()}
               />
             ) : (
               <Congratscard />
             )}
             {btnGroup}
           </Box>
-          <Box marginTop="16px">
-            <Text size="default">{`You have mastered ${masteredRecordsNum} of ${records.length} records; ${learningRecordsNum} records still need to be reviewed`}</Text>
-            <Box
-              marginTop="6px"
-              height="24px"
-              backgroundColor="#f5f5f5"
-              boxShadow="inset 0 1px 2px rgb(0 0 0 / 10%)"
-              width="100%"
-              borderRadius="large"
-              overflow="hidden"
-            >
-              <Box
-                width="100%"
-                height="100%"
-                display="flex"
-                flexDirection="row"
-              >
-                <Box
-                  width={
-                    (
-                      parseFloat(masteredRecordsNum / records.length) * 100
-                    ).toFixed(2) + "%"
-                  }
-                  height="100%"
-                  backgroundColor="#37b95c"
-                />
-                <Box
-                  width={
-                    (
-                      parseFloat(learningRecordsNum / records.length) * 100
-                    ).toFixed(2) + "%"
-                  }
-                  height="100%"
-                  backgroundColor="#f6a351"
-                />
-              </Box>
-            </Box>
-          </Box>
+          <ProgressBar
+            masteredRecordsNum={masteredRecordsNum}
+            learningRecordsNum={learningRecordsNum}
+            recordsNum={records.length}
+          />
         </Box>
         <Box flex="none" borderTop="none" display="flex" padding={3}>
           {record && (

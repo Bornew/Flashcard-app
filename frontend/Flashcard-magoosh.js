@@ -9,21 +9,19 @@ export default function FlashcardMagoosh({
   record,
   settings,
   shouldShowAnswer,
+  recordStatus,
 }) {
   const statusBackgroundColor = () => {
-    if (record) {
-      switch (record.getCellValueAsString(settings.statusField)) {
-        case STATUS_TYPES.LEARNING: {
-          return "#F6A351";
-        }
-        case STATUS_TYPES.MASTERED: {
-          return "#37b95c";
-        }
-        default:
-          return "#f5f5f5";
+    switch (recordStatus) {
+      case STATUS_TYPES.LEARNING: {
+        console.log("learning");
+        return "#F6A351";
       }
-    } else {
-      return "white";
+      case STATUS_TYPES.MASTERED: {
+        return "#37b95c";
+      }
+      default:
+        return "#f5f5f5";
     }
   };
 
