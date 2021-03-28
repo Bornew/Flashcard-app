@@ -79,11 +79,6 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
      * Only unfamiliar cards will reappear; mastered cards would not appear untill the user wants to restart
      * In this way the flashcards focuses on the words the user needs to review the most and helps the user to memorize effectively
      */
-    settings.statusField
-      ? settings.table.updateRecordAsync(record, {
-          [settings.statusField.id]: { name: status },
-        })
-      : "";
 
     switch (status) {
       case STATUS_TYPES.MASTERED: {
@@ -97,6 +92,11 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           newLearningRecordsSet.delete(record);
           setLearningRecordsSet(newLearningRecordsSet);
           setLearningRecordsNum(learningRecordsNum - 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.REVIEWING },
+              })
+            : ""; // track in the statusField if specified
         } else if (reviewingRecordsSet.has(record)) {
           // if the record was classified as "reviewing", this time it is classified as "mastered"
           const newMasteredRecordsSet = new Set(masteredRecordsSet);
@@ -107,11 +107,21 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           newReviewingRecordsSet.delete(record);
           setReviewingRecordsSet(newReviewingRecordsSet);
           setReviewingRecordsNum(reviewingRecordsNum - 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.MASTERED },
+              })
+            : "";
         } else if (!masteredRecordsSet.has(record)) {
           // if the record was never touched previously, this time it is classified as "mastered"
           const newMasteredRecordsSet = new Set(masteredRecordsSet);
           setMasteredRecordsSet(newMasteredRecordsSet.add(record));
           setMasteredRecordsNum(masteredRecordsNum + 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.MASTERED },
+              })
+            : "";
 
           // store the times the word is specified as "mastered"
           settings.numbersField
@@ -137,6 +147,11 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           newMasteredRecordsSet.delete(record);
           setMasteredRecordsSet(newMasteredRecordsSet);
           setMasteredRecordsNum(masteredRecordsNum - 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
+              })
+            : "";
         } else if (reviewingRecordsSet.has(record)) {
           // if the record was being reviewed, this time it would be classified as learning
           const newLearningRecordsSet = new Set(learningRecordsSet);
@@ -147,11 +162,21 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           newReviewingRecordsSet.delete(record);
           setReviewingRecordsSet(newReviewingRecordsSet);
           setReviewingRecordsNum(reviewingRecordsNum - 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
+              })
+            : "";
         } else if (!learningRecordsSet.has(record)) {
           // if the record was not touched, this time it should be classified as learning
           const newLearningRecordsSet = new Set(learningRecordsSet);
           setLearningRecordsSet(newLearningRecordsSet.add(record));
           setLearningRecordsNum(learningRecordsNum + 1);
+          settings.statusField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
+              })
+            : "";
         }
 
         break;
