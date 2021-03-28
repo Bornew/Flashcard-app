@@ -17,13 +17,13 @@ import { ConfigKeys } from "./settings";
 export default function SettingsForm({
   setIsSettingsVisible,
   settings,
+  isRandom,
   setIsRandom,
 }) {
   const modeOptions = [
     { value: "random", label: "Random" },
     { value: "normal", label: "Normal" },
   ];
-  const [value, setValue] = useState(modeOptions[0].value);
   return (
     <Box
       flex="none"
@@ -87,17 +87,15 @@ export default function SettingsForm({
             </FormField>
           </Fragment>
         )}
-        {/* <FormField label="Select a mode">
+        <FormField label="Select a mode">
           <SelectButtons
-            value={value}
+            value={isRandom ? modeOptions[0].value : modeOptions[1].value}
             onChange={(newValue) => {
-              setValue(newValue);
-              setIsRandom(newValue == modeOptions[0] ? false : true);
-              console.log(newValue);
+              setIsRandom(newValue == modeOptions[0].value ? true : false);
             }}
             options={modeOptions}
           />
-        </FormField> */}
+        </FormField>
       </Box>
 
       <Box

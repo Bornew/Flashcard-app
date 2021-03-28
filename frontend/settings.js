@@ -66,7 +66,8 @@ export function useSettings() {
   if (!table || !view || !questionField) {
     return {
       isValid: false,
-      message: "Pick a table, view, and question field",
+      message:
+        "Pick a table, view, and question field; records cannot be emply.",
       settings,
     };
   }

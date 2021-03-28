@@ -58,7 +58,7 @@ function FlashcardApp() {
       display="flex"
     >
       <Box display="flex" flexDirection="column" flex="auto">
-        {isValid ? (
+        {isValid && records ? (
           <FlashcardContainer
             records={records}
             settings={settings}
@@ -79,6 +79,8 @@ function FlashcardApp() {
         <SettingsForm
           setIsSettingsVisible={setIsSettingsVisible}
           settings={settings}
+          isRandom={isRandom}
+          setIsRandom={setIsRandom}
         />
       )}
     </Box>

@@ -10,14 +10,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRandom, faRedo } from "@fortawesome/fontawesome-free-solid";
 import ProgressBar from "./ProgressBar";
 /**
- * Responsible for picking a random record from the given records.
- * Keeps track of removed records.
+ * Picking a random record or a record in sequence from the given records based on the user setting
+ * In RANDOM mode, both unfamiliar records and unknown records will appear randomly;
+ * In NORMAL mode, both unfamiliar records and unknown records will appear in sequence;
+ * Keep track of the familiarity of the records and store the learning situation in the specified fields (if specified in setting form);
+ *
  */
-export default function FlashcardContainer({ records, settings }) {
-  const [isRandom, setIsRandom] = useState(true);
-  let recordIterator = records.values();
+export default function FlashcardContainer({ records, settings, isRandom }) {
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
-  //   const [recordStatus, setRecordStatus] = useState(null);
   const [learningRecordsSet, setLearningRecordsSet] = useState(
     settings.statusField
       ? new Set(
@@ -29,7 +29,7 @@ export default function FlashcardContainer({ records, settings }) {
           )
         )
       : new Set()
-  ); //学习中
+  ); //unfamiliar records will be marked as "learning"
   const [masteredRecordsSet, setMasteredRecordsSet] = useState(
     settings.statusField
       ? new Set(
@@ -41,9 +41,15 @@ export default function FlashcardContainer({ records, settings }) {
           )
         )
       : new Set()
-  ); //已掌握
+  ); //mastered records will be marked as "mastered"
   const [record, setRecord] = useState(
-    _.sample(records.filter((r) => r !== record && !masteredRecordsSet.has(r)))
+    isRandom
+      ? _.sample(
+          records.filter((r) => r !== record && !masteredRecordsSet.has(r))
+        )
+      : records.filter((r) => r !== record && !masteredRecordsSet.has(r)).length
+      ? records.filter((r) => r !== record && !masteredRecordsSet.has(r))[0]
+      : null
   );
   const [masteredRecordsNum, setMasteredRecordsNum] = useState(
     masteredRecordsSet.size
@@ -51,12 +57,6 @@ export default function FlashcardContainer({ records, settings }) {
   const [learningRecordsNum, setLearningRecordsNum] = useState(
     learningRecordsSet.size
   );
-  const [completeStatus, setCompleteStatus] = useState(false);
-  const flashCardRef = useRef();
-
-  function handleCheckRandom(event) {
-    setIsRandom(event.currentTarget.checked);
-  }
 
   function handleUpdateRecord(record, status) {
     settings.statusField
@@ -131,7 +131,12 @@ export default function FlashcardContainer({ records, settings }) {
         )
       );
     } else {
-      console.log("ordered", recordIterator.next().type);
+      console.log("not random");
+      setRecord(
+        records.filter((r) => r !== record && !masteredRecordsSet.has(r)).length
+          ? records.filter((r) => r !== record && !masteredRecordsSet.has(r))[0]
+          : null
+      );
     }
   }
 
@@ -164,11 +169,11 @@ export default function FlashcardContainer({ records, settings }) {
     }
   }
   function reset() {
-    setRecord(_.sample(records));
     setMasteredRecordsSet(new Set());
     setLearningRecordsSet(new Set());
     setMasteredRecordsNum(0);
     setLearningRecordsNum(0);
+    isRandom ? setRecord(_.sample(records)) : setRecord(records[0]);
   }
 
   // Handle updating record and removedRecordsSet due to records changing
@@ -187,20 +192,14 @@ export default function FlashcardContainer({ records, settings }) {
       }
     }
     if (newLearningRecordsSet.size !== learningRecordsSet.size) {
-      console.log(newLearningRecordsSet.size, learningRecordsSet.size);
       setLearningRecordsSet(newLearningRecordsSet);
-      console.log(learningRecordsSet);
     }
     if (newMasteredRecordsSet.size !== masteredRecordsSet.size) {
-      console.log(newMasteredRecordsSet.size, masteredRecordsSet.size);
       setMasteredRecordsSet(newMasteredRecordsSet);
     }
     if (!allRecordsSet.has(record)) {
       handleNewRecord();
     }
-    console.log(
-      `There are ${records.length} records in this table view. You have mastered ${masteredRecordsNum} records, ${learningRecordsNum} records still need to be reviewed.`
-    );
   }, [records]);
   let btnGroup;
   if (record) {
@@ -301,21 +300,6 @@ export default function FlashcardContainer({ records, settings }) {
                 Words you don't know will reappear later
               </Text>
             </Box>
-            {/* <Box display="flex" flexDirection="row" alignItems="center">
-              <input
-                type="checkbox"
-                checked={isRandom}
-                onChange={handleCheckRandom}
-              />
-              <Text
-                fontSize="12px"
-                color="rgba(0, 0, 0, 0.6)"
-                marginX="8px 0"
-                fontWeight="300"
-              >
-                Random Mode
-              </Text>
-            </Box> */}
           </Box>
           <Box
             marginBottom={3}
