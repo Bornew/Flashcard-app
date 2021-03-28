@@ -13,8 +13,8 @@ import ProgressBar from "./ProgressBar";
  * Picking a random record or a record in sequence from the given records based on the user setting
  * In RANDOM mode, both unfamiliar records and unknown records will appear randomly;
  * In NORMAL mode, both unfamiliar records and unknown records will appear in sequence;
+ * Every record that the user does not know will repeat at least twice. (learning -> reviewing -> mastered)
  * Keep track of the familiarity of the records and store the learning situation in the specified fields (if specified in setting form);
- *
  */
 export default function FlashcardContainer({ records, settings, isRandom }) {
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
@@ -29,7 +29,19 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           )
         )
       : new Set()
-  ); //unfamiliar records will be marked as "learning"
+  ); // unfamiliar records will be marked as "learning"
+  const [reviewingRecordsSet, setReviewingRecordsSet] = useState(
+    settings.statusField
+      ? new Set(
+          records.filter(
+            (r) =>
+              r.getCellValue(settings.statusField) &&
+              r.getCellValueAsString(settings.statusField) ===
+                STATUS_TYPES.REVIEWING
+          )
+        )
+      : new Set()
+  ); // reviewing records will be marked as "reviewing"
   const [masteredRecordsSet, setMasteredRecordsSet] = useState(
     settings.statusField
       ? new Set(
@@ -41,7 +53,7 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           )
         )
       : new Set()
-  ); //mastered records will be marked as "mastered"
+  ); // mastered records will be marked as "mastered"
   const [record, setRecord] = useState(
     isRandom
       ? _.sample(
@@ -50,15 +62,23 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
       : records.filter((r) => r !== record && !masteredRecordsSet.has(r)).length
       ? records.filter((r) => r !== record && !masteredRecordsSet.has(r))[0]
       : null
-  );
+  ); // all the records that are not mastered
   const [masteredRecordsNum, setMasteredRecordsNum] = useState(
     masteredRecordsSet.size
-  );
+  ); // count the num of the records that the user have mastered
   const [learningRecordsNum, setLearningRecordsNum] = useState(
     learningRecordsSet.size
-  );
+  ); // count the num of the records that the user don't know
+  const [reviewingRecordsNum, setReviewingRecordsNum] = useState(
+    reviewingRecordsSet.size
+  ); // count the num of the records being reviewed
 
   function handleUpdateRecord(record, status) {
+    /**
+     * The classification of cards follows simple rules: 1. new card -> mastered; 2. new card -> learning -> reviewing -> mastered
+     * Only unfamiliar cards will reappear; mastered cards would not appear untill the user wants to restart
+     * In this way the flashcards focuses on the words the user needs to review the most and helps the user to memorize effectively
+     */
     settings.statusField
       ? settings.table.updateRecordAsync(record, {
           [settings.statusField.id]: { name: status },
@@ -67,48 +87,72 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
 
     switch (status) {
       case STATUS_TYPES.MASTERED: {
-        // 如果status是mastered，并且愿状态不是mastered，更新原record，同时更新masteredRecordsSet
-        // 如果在 learning 中，则需要移除
-
-        if (!masteredRecordsSet.has(record)) {
-          const newMasteredRecordsSet = new Set(masteredRecordsSet);
-          setMasteredRecordsSet(newMasteredRecordsSet.add(record));
-          setMasteredRecordsNum(masteredRecordsNum + 1);
-        }
         if (learningRecordsSet.has(record)) {
-          console.log("learningRecord has this word!");
+          // if the record was specified as "don't know" by the user at first, this time it is classified as "reviewing"
+          const newReviewingRecordsSet = new Set(reviewingRecordsSet);
+          setReviewingRecordsSet(newReviewingRecordsSet.add(record));
+          setReviewingRecordsNum(reviewingRecordsNum + 1);
+          // removed the record from the learning set
           const newLearningRecordsSet = new Set(learningRecordsSet);
           newLearningRecordsSet.delete(record);
           setLearningRecordsSet(newLearningRecordsSet);
           setLearningRecordsNum(learningRecordsNum - 1);
+        } else if (reviewingRecordsSet.has(record)) {
+          // if the record was classified as "reviewing", this time it is classified as "mastered"
+          const newMasteredRecordsSet = new Set(masteredRecordsSet);
+          setMasteredRecordsSet(newMasteredRecordsSet.add(record));
+          setMasteredRecordsNum(masteredRecordsNum + 1);
+          // removed the record from the reviewing set
+          const newReviewingRecordsSet = new Set(reviewingRecordsSet);
+          newReviewingRecordsSet.delete(record);
+          setReviewingRecordsSet(newReviewingRecordsSet);
+          setReviewingRecordsNum(reviewingRecordsNum - 1);
+        } else if (!masteredRecordsSet.has(record)) {
+          // if the record was never touched previously, this time it is classified as "mastered"
+          const newMasteredRecordsSet = new Set(masteredRecordsSet);
+          setMasteredRecordsSet(newMasteredRecordsSet.add(record));
+          setMasteredRecordsNum(masteredRecordsNum + 1);
+
+          // store the times the word is specified as "mastered"
+          settings.numbersField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.numbersField.id]: record.getCellValue(
+                  settings.numbersField
+                )
+                  ? record.getCellValue(settings.numbersField) + 1
+                  : 1,
+              })
+            : "";
         }
-        settings.numbersField
-          ? settings.table.updateRecordAsync(record, {
-              [settings.numbersField.id]: record.getCellValue(
-                settings.numbersField
-              )
-                ? record.getCellValue(settings.numbersField) + 1
-                : 1,
-            })
-          : "";
         handleToggleRecord();
         break;
       }
       case STATUS_TYPES.LEARNING: {
-        // 如果status是learning，并且原状态不是learning，更新原record，同时更新learningRecordsSet
-        // 如果在mastered中，则需要移除
-
-        if (!learningRecordsSet.has(record)) {
+        if (masteredRecordsSet.has(record)) {
+          // if the record was specified as "mastered", this time it would be classified as learning
           const newLearningRecordsSet = new Set(learningRecordsSet);
           setLearningRecordsSet(newLearningRecordsSet.add(record));
           setLearningRecordsNum(learningRecordsNum + 1);
-        }
-        if (masteredRecordsSet.has(record)) {
-          console.log("masteredRecord has this word!");
+          // remove the records from the mastered set
           const newMasteredRecordsSet = new Set(masteredRecordsSet);
           newMasteredRecordsSet.delete(record);
           setMasteredRecordsSet(newMasteredRecordsSet);
           setMasteredRecordsNum(masteredRecordsNum - 1);
+        } else if (reviewingRecordsSet.has(record)) {
+          // if the record was being reviewed, this time it would be classified as learning
+          const newLearningRecordsSet = new Set(learningRecordsSet);
+          setLearningRecordsSet(newLearningRecordsSet.add(record));
+          setLearningRecordsNum(learningRecordsNum + 1);
+          // removed the record from the reviewing set
+          const newReviewingRecordsSet = new Set(reviewingRecordsSet);
+          newReviewingRecordsSet.delete(record);
+          setReviewingRecordsSet(newReviewingRecordsSet);
+          setReviewingRecordsNum(reviewingRecordsNum - 1);
+        } else if (!learningRecordsSet.has(record)) {
+          // if the record was not touched, this time it should be classified as learning
+          const newLearningRecordsSet = new Set(learningRecordsSet);
+          setLearningRecordsSet(newLearningRecordsSet.add(record));
+          setLearningRecordsNum(learningRecordsNum + 1);
         }
         handleToggleRecord();
         break;
@@ -119,6 +163,7 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     }
     handleNewRecord();
   }
+
   function handleToggleRecord() {
     setShouldShowAnswer(!shouldShowAnswer);
   }
@@ -149,6 +194,9 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
         case STATUS_TYPES.LEARNING: {
           return STATUS_TYPES.LEARNING;
         }
+        case STATUS_TYPES.REVIEWING: {
+          return STATUS_TYPES.REVIEWING;
+        }
         case STATUS_TYPES.MASTERED: {
           return STATUS_TYPES.MASTERED;
         }
@@ -158,10 +206,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     } else if (record) {
       // otherwise use the status value in the local storage
       if (masteredRecordsSet.has(record)) {
-        console.log("yes you have mastered!");
         return STATUS_TYPES.MASTERED;
+      } else if (reviewingRecordsSet.has(record)) {
+        return STATUS_TYPES.REVIEWING;
       } else if (learningRecordsSet.has(record)) {
-        console.log("word is learning");
         return STATUS_TYPES.LEARNING;
       } else {
         return null;
@@ -171,19 +219,27 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
   function reset() {
     setMasteredRecordsSet(new Set());
     setLearningRecordsSet(new Set());
+    setReviewingRecordsSet(new Set());
     setMasteredRecordsNum(0);
     setLearningRecordsNum(0);
+    setReviewingRecordsNum(0);
     isRandom ? setRecord(_.sample(records)) : setRecord(records[0]);
   }
 
-  // Handle updating record and removedRecordsSet due to records changing
+  // Handle updating record and other classified record sets due to records changing
   useEffect(() => {
     const allRecordsSet = new Set(records);
     const newLearningRecordsSet = new Set();
     const newMasteredRecordsSet = new Set();
+    const newReviewingRecordsSet = new Set();
     for (const learningRecord of learningRecordsSet) {
       if (allRecordsSet.has(learningRecord)) {
         newLearningRecordsSet.add(learningRecord);
+      }
+    }
+    for (const reviewingRecord of reviewingRecordsSet) {
+      if (allRecordsSet.has(reviewingRecord)) {
+        newReviewingRecordsSet.add(reviewingRecord);
       }
     }
     for (const masteredRecord of masteredRecordsSet) {
@@ -194,9 +250,13 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     if (newLearningRecordsSet.size !== learningRecordsSet.size) {
       setLearningRecordsSet(newLearningRecordsSet);
     }
+    if (newReviewingRecordsSet.size !== reviewingRecordsSet.size) {
+      setReviewingRecordsSet(newReviewingRecordsSet);
+    }
     if (newMasteredRecordsSet.size !== masteredRecordsSet.size) {
       setMasteredRecordsSet(newMasteredRecordsSet);
     }
+
     if (!allRecordsSet.has(record)) {
       handleNewRecord();
     }
@@ -327,6 +387,7 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           </Box>
           <ProgressBar
             masteredRecordsNum={masteredRecordsNum}
+            reviewingRecordsNum={reviewingRecordsNum}
             learningRecordsNum={learningRecordsNum}
             recordsNum={records.length}
           />

@@ -15,10 +15,13 @@ export default function FlashcardMagoosh({
     switch (recordStatus) {
       case STATUS_TYPES.LEARNING: {
         console.log("learning");
-        return "#F6A351";
+        return "#d9595d";
       }
       case STATUS_TYPES.MASTERED: {
         return "#37b95c";
+      }
+      case STATUS_TYPES.REVIEWING: {
+        return "#F6A351";
       }
       default:
         return "#f5f5f5";

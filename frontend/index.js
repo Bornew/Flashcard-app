@@ -14,8 +14,8 @@ import SettingsForm from "./SettingsForm";
 
 // Determines the maximum size of the app in fullscreen mode.
 viewport.addMaxFullscreenSize({
-  height: 640,
-  width: 880,
+  height: 680,
+  width: 900,
 });
 
 viewport.addMinSize({

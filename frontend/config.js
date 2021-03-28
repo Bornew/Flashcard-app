@@ -6,5 +6,6 @@ export const ITEM_TYPES = {
 export const STATUS_TYPES = {
   MASTERED: "mastered",
   LEARNING: "learning",
+  REVIEWING: "reviewing",
   UNTOUCHED: "untouched",
 };
