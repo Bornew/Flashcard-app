@@ -67,7 +67,7 @@ export function useSettings() {
     return {
       isValid: false,
       message:
-        "Pick a table, view, and question field; records cannot be emply.",
+        "Pick a table, view, and question field; records cannot be empty.",
       settings,
     };
   }

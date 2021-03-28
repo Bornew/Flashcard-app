@@ -124,7 +124,6 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
               })
             : "";
         }
-        handleToggleRecord();
         break;
       }
       case STATUS_TYPES.LEARNING: {
@@ -154,14 +153,14 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setLearningRecordsSet(newLearningRecordsSet.add(record));
           setLearningRecordsNum(learningRecordsNum + 1);
         }
-        handleToggleRecord();
+
         break;
       }
       default: {
-        handleToggleRecord();
       }
     }
     handleNewRecord();
+    handleToggleRecord();
   }
 
   function handleToggleRecord() {
@@ -306,6 +305,7 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           onClick={() => {
             console.log("Restart!");
             reset();
+            handleToggleRecord();
           }}
           pointer="cursor"
           width="100%"
