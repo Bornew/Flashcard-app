@@ -112,6 +112,15 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
                 [settings.statusField.id]: { name: STATUS_TYPES.MASTERED },
               })
             : "";
+          settings.numbersField
+            ? settings.table.updateRecordAsync(record, {
+                [settings.numbersField.id]: record.getCellValue(
+                  settings.numbersField
+                )
+                  ? record.getCellValue(settings.numbersField) + 1
+                  : 1,
+              })
+            : "";
         } else if (!masteredRecordsSet.has(record)) {
           // if the record was never touched previously, this time it is classified as "mastered"
           const newMasteredRecordsSet = new Set(masteredRecordsSet);
