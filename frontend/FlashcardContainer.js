@@ -94,6 +94,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     }
   }, []);
 
+  useEffect(() => {
+    reset();
+  }, [settings]);
+
   function updateSingleSelectRecord(id, name) {
     settings.table.updateRecordAsync(record, {
       [id]: { name: name },
