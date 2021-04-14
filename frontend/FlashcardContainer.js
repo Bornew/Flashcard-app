@@ -16,6 +16,17 @@ import ProgressBar from "./ProgressBar";
  * Every record that the user does not know will repeat at least twice. (learning -> reviewing -> mastered)
  * Keep track of the familiarity of the records and store the learning situation in the specified fields (if specified in setting form);
  */
+
+async function addChoiceToSelectField(selectField, nameForNewOption) {
+  const updatedOptions = {
+    choices: [...selectField.options.choices, { name: nameForNewOption }],
+  };
+  if (selectField.hasPermissionToUpdateOptions(updatedOptions)) {
+    await selectField.updateOptionsAsync(updatedOptions);
+    console.log("successfully added option" + nameForNewOption);
+  }
+}
+
 export default function FlashcardContainer({ records, settings, isRandom }) {
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
   const [learningRecordsSet, setLearningRecordsSet] = useState(
@@ -73,6 +84,22 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     reviewingRecordsSet.size
   ); // count the num of the records being reviewed
 
+  useEffect(() => {
+    if (settings.statusField) {
+      addChoiceToSelectField(settings.statusField, STATUS_TYPES.LEARNING);
+      addChoiceToSelectField(settings.statusField, STATUS_TYPES.MASTERED);
+      addChoiceToSelectField(settings.statusField, STATUS_TYPES.REVIEWING);
+      addChoiceToSelectField(settings.statusField, STATUS_TYPES.UNTOUCHED);
+      console.log("success");
+    }
+  }, []);
+
+  function updateSingleSelectRecord(id, name) {
+    settings.table.updateRecordAsync(record, {
+      [id]: { name: name },
+    });
+  }
+
   function handleUpdateRecord(record, status) {
     /**
      * The classification of cards follows simple rules: 1. new card -> mastered; 2. new card -> learning -> reviewing -> mastered
@@ -93,9 +120,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setLearningRecordsSet(newLearningRecordsSet);
           setLearningRecordsNum(learningRecordsNum - 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.REVIEWING },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.REVIEWING
+              )
             : ""; // track in the statusField if specified
         } else if (reviewingRecordsSet.has(record)) {
           // if the record was classified as "reviewing", this time it is classified as "mastered"
@@ -108,9 +136,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setReviewingRecordsSet(newReviewingRecordsSet);
           setReviewingRecordsNum(reviewingRecordsNum - 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.MASTERED },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.MASTERED
+              )
             : "";
           settings.numbersField
             ? settings.table.updateRecordAsync(record, {
@@ -127,9 +156,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setMasteredRecordsSet(newMasteredRecordsSet.add(record));
           setMasteredRecordsNum(masteredRecordsNum + 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.MASTERED },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.MASTERED
+              )
             : "";
 
           // store the times the word is specified as "mastered"
@@ -157,9 +187,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setMasteredRecordsSet(newMasteredRecordsSet);
           setMasteredRecordsNum(masteredRecordsNum - 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.LEARNING
+              )
             : "";
         } else if (reviewingRecordsSet.has(record)) {
           // if the record was being reviewed, this time it would be classified as learning
@@ -172,9 +203,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setReviewingRecordsSet(newReviewingRecordsSet);
           setReviewingRecordsNum(reviewingRecordsNum - 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.LEARNING
+              )
             : "";
         } else if (!learningRecordsSet.has(record)) {
           // if the record was not touched, this time it should be classified as learning
@@ -182,9 +214,10 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
           setLearningRecordsSet(newLearningRecordsSet.add(record));
           setLearningRecordsNum(learningRecordsNum + 1);
           settings.statusField
-            ? settings.table.updateRecordAsync(record, {
-                [settings.statusField.id]: { name: STATUS_TYPES.LEARNING },
-              })
+            ? updateSingleSelectRecord(
+                settings.statusField.id,
+                STATUS_TYPES.LEARNING
+              )
             : "";
         }
 
@@ -222,7 +255,6 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     if (record && settings.statusField) {
       // if the user specifies the statusField, use the previous status value as the background color;
       let statusCellValue = record.getCellValueAsString(settings.statusField);
-      console.log(statusCellValue);
       switch (statusCellValue) {
         case STATUS_TYPES.LEARNING: {
           return STATUS_TYPES.LEARNING;

@@ -1,5 +1,5 @@
 import { useBase, useGlobalConfig } from "@airtable/blocks/ui";
-
+import { STATUS_TYPES } from "./config";
 export const ConfigKeys = Object.freeze({
   TABLE_ID: "tableId",
   VIEW_ID: "viewId",
@@ -21,6 +21,7 @@ export const ConfigKeys = Object.freeze({
  *  isValid: boolean,
  *  message?: string}}
  */
+
 export function useSettings() {
   /**
    * 读取当前view全部数据

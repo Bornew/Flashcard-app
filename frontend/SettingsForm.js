@@ -61,12 +61,23 @@ export default function SettingsForm({
               <FieldPickerSynced
                 table={settings.table}
                 globalConfigKey={ConfigKeys.QUESTION_FIELD_ID}
+                shouldAllowPickingNone={false}
+                allowedTypes={[
+                  FieldType.RICH_TEXT,
+                  FieldType.SINGLE_LINE_TEXT,
+                  FieldType.AUTO_NUMBER,
+                  FieldType.URL,
+                  FieldType.SINGLE_SELECT,
+                  FieldType.MULTILINE_TEXT,
+                  FieldType.MULTIPLE_ATTACHMENTS,
+                ]}
               />
             </FormField>
             <FormField label="Answer field">
               <FieldPickerSynced
                 table={settings.table}
                 globalConfigKey={ConfigKeys.ANSWER_FIELD_ID}
+                shouldAllowPickingNone={false}
               />
             </FormField>
             <FormField label="Status field (optional)">

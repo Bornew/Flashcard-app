@@ -50,16 +50,21 @@ export default function CustomCellRenderer({ record, field, itemType }) {
     default: {
       switch (itemType) {
         case ITEM_TYPES.ANSWER: {
+          console.log(record.getCellValueAsString(field));
           return (
             <Text fontSize="16px" lineHeight="20px">
-              {record.getCellValueAsString(field)}
+              {!!record.getCellValueAsString(field)
+                ? record.getCellValueAsString(field)
+                : "--"}
             </Text>
           );
         }
         case ITEM_TYPES.QUESTION_SMALL: {
           return (
             <Text fontSize="40px" lineHeight="44px">
-              {record.getCellValueAsString(field)}
+              {!!record.getCellValueAsString(field)
+                ? record.getCellValueAsString(field)
+                : "--"}
             </Text>
           );
         }
@@ -67,7 +72,9 @@ export default function CustomCellRenderer({ record, field, itemType }) {
           console.log("question");
           return (
             <Text fontSize="60px" lineHeight="72px">
-              {record.getCellValueAsString(field)}
+              {!!record.getCellValueAsString(field)
+                ? record.getCellValueAsString(field)
+                : "--"}
             </Text>
           );
         }
