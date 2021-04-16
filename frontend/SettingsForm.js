@@ -19,6 +19,7 @@ export default function SettingsForm({
   settings,
   isRandom,
   setIsRandom,
+  reset,
 }) {
   const modeOptions = [
     { value: "random", label: "Random" },
@@ -120,7 +121,10 @@ export default function SettingsForm({
         <Button
           variant="primary"
           size="large"
-          onClick={() => setIsSettingsVisible(false)}
+          onClick={() => {
+            setIsSettingsVisible(false);
+            reset();
+          }}
         >
           Done
         </Button>

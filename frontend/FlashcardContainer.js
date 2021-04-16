@@ -1,7 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React, { Fragment, useEffect, useState, useRef } from "react";
-import { Field, Record } from "@airtable/blocks/models";
+import { Field, FieldType, Record } from "@airtable/blocks/models";
 import { Box, Button, expandRecord, Text, Icon } from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
 import Congratscard from "./Congratscard";
@@ -9,6 +9,7 @@ import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRandom, faRedo } from "@fortawesome/fontawesome-free-solid";
 import ProgressBar from "./ProgressBar";
+
 /**
  * Picking a random record or a record in sequence from the given records based on the user setting
  * In RANDOM mode, both unfamiliar records and unknown records will appear randomly;
@@ -17,17 +18,27 @@ import ProgressBar from "./ProgressBar";
  * Keep track of the familiarity of the records and store the learning situation in the specified fields (if specified in setting form);
  */
 
-async function addChoiceToSelectField(selectField, nameForNewOption) {
+async function addChoicesToSelectField(selectField, namesForNewOption) {
+  console.log(namesForNewOption);
   const updatedOptions = {
-    choices: [...selectField.options.choices, { name: nameForNewOption }],
+    choices: [...selectField.options.choices, ...namesForNewOption],
   };
+  console.log(updatedOptions);
   if (selectField.hasPermissionToUpdateOptions(updatedOptions)) {
     await selectField.updateOptionsAsync(updatedOptions);
-    console.log("successfully added option" + nameForNewOption);
+    console.log("successfully added option" + updatedOptions.choices);
   }
 }
 
-export default function FlashcardContainer({ records, settings, isRandom }) {
+export default function FlashcardContainer({
+  records,
+  settings,
+  isRandom,
+  shouldReset,
+  reset,
+  setShouldReset,
+}) {
+  // 传入的值应该包括是否要reset的值
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
   const [learningRecordsSet, setLearningRecordsSet] = useState(
     settings.statusField
@@ -85,17 +96,9 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
   ); // count the num of the records being reviewed
 
   useEffect(() => {
-    if (settings.statusField) {
-      addChoiceToSelectField(settings.statusField, STATUS_TYPES.LEARNING);
-      addChoiceToSelectField(settings.statusField, STATUS_TYPES.MASTERED);
-      addChoiceToSelectField(settings.statusField, STATUS_TYPES.REVIEWING);
-      addChoiceToSelectField(settings.statusField, STATUS_TYPES.UNTOUCHED);
-      console.log("success");
-    }
-  }, []);
-
-  useEffect(() => {
-    reset();
+    // reset();
+    console.log(settings.statusField);
+    console.log(settings);
   }, [settings]);
 
   function updateSingleSelectRecord(id, name) {
@@ -301,6 +304,36 @@ export default function FlashcardContainer({ records, settings, isRandom }) {
     const newLearningRecordsSet = new Set();
     const newMasteredRecordsSet = new Set();
     const newReviewingRecordsSet = new Set();
+    const statusFieldConfig = settings.statusField?.config;
+    if (statusFieldConfig) {
+      console.log(statusFieldConfig.options.choices);
+      let choiceNames = [];
+      for (const choice of statusFieldConfig.options.choices) {
+        choiceNames.push(choice.name);
+      }
+      const addChoicesFC = [];
+      if (!choiceNames.includes(STATUS_TYPES.MASTERED)) {
+        addChoicesFC.push({
+          name: STATUS_TYPES.MASTERED,
+          color: "greenLight2",
+        });
+      }
+      if (!choiceNames.includes(STATUS_TYPES.LEARNING)) {
+        addChoicesFC.push({
+          name: STATUS_TYPES.LEARNING,
+          color: "yellowLight2",
+        });
+      }
+      if (!choiceNames.includes(STATUS_TYPES.REVIEWING)) {
+        addChoicesFC.push({
+          name: STATUS_TYPES.REVIEWING,
+          color: "orangeLight2",
+        });
+      }
+      console.log(addChoicesFC);
+      addChoicesToSelectField(settings.statusField, addChoicesFC);
+    }
+
     for (const learningRecord of learningRecordsSet) {
       if (allRecordsSet.has(learningRecord)) {
         newLearningRecordsSet.add(learningRecord);
