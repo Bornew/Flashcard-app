@@ -2,7 +2,14 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Field, FieldType, Record } from "@airtable/blocks/models";
-import { Box, Button, expandRecord, Text, Icon } from "@airtable/blocks/ui";
+import {
+  Box,
+  Button,
+  expandRecord,
+  Text,
+  Icon,
+  Switch,
+} from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
 import Congratscard from "./Congratscard";
 import { ITEM_TYPES, STATUS_TYPES } from "./config.js";
@@ -34,9 +41,7 @@ export default function FlashcardContainer({
   records,
   settings,
   isRandom,
-  shouldReset,
-  reset,
-  setShouldReset,
+  setIsRandom,
 }) {
   // 传入的值应该包括是否要reset的值
   const [shouldShowAnswer, setShouldShowAnswer] = useState(false);
@@ -295,7 +300,7 @@ export default function FlashcardContainer({
     setMasteredRecordsNum(0);
     setLearningRecordsNum(0);
     setReviewingRecordsNum(0);
-    isRandom ? setRecord(_.sample(records)) : setRecord(records[0]);
+    isRandom ? setRecord(records[0]) : setRecord(_.sample(records));
   }
 
   // Handle updating record and other classified record sets due to records changing
@@ -452,8 +457,31 @@ export default function FlashcardContainer({
             justifyContent="space-between"
             marginBottom="16px"
           >
-            <Box display="flex" flexDirection="row" alignItems="center">
-              <FontAwesomeIcon icon={faRandom} color="rgba(0, 0, 0, 0.6)" />
+            <Box display="flex" flexDirection="column" height="24px">
+              {/* <FormField label=""> */}
+              <Box display="flex" flexDirection="row" alignItems="center">
+                <Text
+                  fontSize="12px"
+                  color="rgba(0, 0, 0, 0.6)"
+                  fontWeight="300"
+                >
+                  Random Order
+                </Text>
+                <Switch
+                  value={isRandom}
+                  onChange={(value) => {
+                    console.log("isRandom", value);
+                    setIsRandom(value);
+                    reset();
+                  }}
+                  size="large"
+                  backgroundColor="transparent"
+                  width="60px"
+                  outline="none"
+                />
+              </Box>
+              {/* </FormField> */}
+              {/* <FontAwesomeIcon icon={faRandom} color="rgba(0, 0, 0, 0.6)" />
               <Text
                 fontSize="12px"
                 color="rgba(0, 0, 0, 0.6)"
@@ -461,7 +489,7 @@ export default function FlashcardContainer({
                 fontWeight="300"
               >
                 Words you don't know will reappear later
-              </Text>
+              </Text> */}
             </Box>
           </Box>
           <Box

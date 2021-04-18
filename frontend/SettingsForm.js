@@ -19,7 +19,6 @@ export default function SettingsForm({
   settings,
   isRandom,
   setIsRandom,
-  reset,
 }) {
   const modeOptions = [
     { value: "random", label: "Random" },
@@ -99,7 +98,7 @@ export default function SettingsForm({
             </FormField>
           </Fragment>
         )}
-        <FormField label="Select a mode">
+        {/* <FormField label="Select a mode">
           <SelectButtons
             value={isRandom ? modeOptions[0].value : modeOptions[1].value}
             onChange={(newValue) => {
@@ -107,7 +106,7 @@ export default function SettingsForm({
             }}
             options={modeOptions}
           />
-        </FormField>
+        </FormField> */}
       </Box>
 
       <Box
@@ -123,7 +122,6 @@ export default function SettingsForm({
           size="large"
           onClick={() => {
             setIsSettingsVisible(false);
-            reset();
           }}
         >
           Done

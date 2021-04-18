@@ -34,9 +34,6 @@ function FlashcardApp() {
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isRandom, setIsRandom] = useState(true);
   const [shouldReset, setShouldReset] = useState(false);
-  function reset() {
-    setShouldReset(true);
-  }
 
   useSettingsButton(() => {
     if (!isSettingsVisible) {
@@ -69,8 +66,7 @@ function FlashcardApp() {
             records={records}
             settings={settings}
             isRandom={isRandom}
-            shouldReset={shouldReset}
-            setShouldReset={setShouldReset}
+            setIsRandom={setIsRandom}
           />
         ) : (
           <Box
@@ -89,7 +85,6 @@ function FlashcardApp() {
           settings={settings}
           isRandom={isRandom}
           setIsRandom={setIsRandom}
-          reset={reset}
         />
       )}
     </Box>
