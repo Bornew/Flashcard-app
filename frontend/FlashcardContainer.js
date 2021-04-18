@@ -293,14 +293,19 @@ export default function FlashcardContainer({
       }
     }
   }
-  function reset() {
+  function reset(isRandom) {
+    console.log("isRandom", isRandom);
     setMasteredRecordsSet(new Set());
     setLearningRecordsSet(new Set());
     setReviewingRecordsSet(new Set());
     setMasteredRecordsNum(0);
     setLearningRecordsNum(0);
     setReviewingRecordsNum(0);
-    isRandom ? setRecord(records[0]) : setRecord(_.sample(records));
+    setShouldShowAnswer(false);
+    console.log("shouldShowAnswer", shouldShowAnswer);
+    // handleNewRecord();
+    // handleToggleRecord();
+    isRandom ? setRecord(_.sample(records)) : setRecord(records[0]);
   }
 
   // Handle updating record and other classified record sets due to records changing
@@ -368,71 +373,6 @@ export default function FlashcardContainer({
       handleNewRecord();
     }
   }, [records]);
-  let btnGroup;
-  if (record) {
-    btnGroup = shouldShowAnswer ? (
-      <Box height="auto" width="100%">
-        <Box
-          onClick={() => {
-            console.log("Button Clicked!");
-            handleUpdateRecord(record, STATUS_TYPES.MASTERED);
-          }}
-          pointer="cursor"
-          width="100%"
-          height="44px"
-          backgroundColor="#bcf5cc"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Text fontSize="14px" textColor="#37b95c">
-            ✓ I know it
-          </Text>
-        </Box>
-        <Box
-          onClick={() => handleUpdateRecord(record, STATUS_TYPES.LEARNING)}
-          pointer="cursor"
-          width="100%"
-          height="44px"
-          backgroundColor="#fccfd0"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="0 0 4px 4px"
-        >
-          <Text fontSize="14px" textColor="#d9595d">
-            ✗ I don't know
-          </Text>
-        </Box>
-      </Box>
-    ) : null;
-  } else {
-    btnGroup = (
-      <Box height="auto" width="100%">
-        <Box
-          onClick={() => {
-            console.log("Restart!");
-            reset();
-            handleToggleRecord();
-          }}
-          pointer="cursor"
-          width="100%"
-          height="44px"
-          backgroundColor="#bcf5cc"
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="0 0 4px 4px"
-        >
-          <Icon name="redo" size={16} fillColor="#37b95c" />
-          <Text fontSize="16px" textColor="#37b95c" marginX="6px">
-            Restart
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Fragment>
@@ -470,9 +410,8 @@ export default function FlashcardContainer({
                 <Switch
                   value={isRandom}
                   onChange={(value) => {
-                    console.log("isRandom", value);
                     setIsRandom(value);
-                    reset();
+                    reset(value);
                   }}
                   size="large"
                   backgroundColor="transparent"
@@ -492,30 +431,102 @@ export default function FlashcardContainer({
               </Text> */}
             </Box>
           </Box>
-          <Box
-            marginBottom={3}
-            width="100%"
-            height="320px"
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            boxShadow="0 4px 6px rgb(0 0 0 / 10%)"
-            onClick={handleToggleRecord}
-            style={{ cursor: "pointer" }}
-            borderRadius="4px"
-          >
-            {record ? (
+          {record ? (
+            <Box
+              marginBottom={3}
+              width="100%"
+              height="320px"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              boxShadow="0 4px 6px rgb(0 0 0 / 10%)"
+              onClick={handleToggleRecord}
+              style={{ cursor: "pointer" }}
+              borderRadius="4px"
+            >
               <FlashcardMagoosh
                 record={record}
                 settings={settings}
                 shouldShowAnswer={shouldShowAnswer}
                 recordStatus={getStatus()}
               />
-            ) : (
+              {shouldShowAnswer ? (
+                <Box height="auto" width="100%">
+                  <Box
+                    onClick={() => {
+                      console.log("Button Clicked!");
+                      handleUpdateRecord(record, STATUS_TYPES.MASTERED);
+                    }}
+                    pointer="cursor"
+                    width="100%"
+                    height="44px"
+                    backgroundColor="#bcf5cc"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Text fontSize="14px" textColor="#37b95c">
+                      ✓ I know it
+                    </Text>
+                  </Box>
+                  <Box
+                    onClick={() =>
+                      handleUpdateRecord(record, STATUS_TYPES.LEARNING)
+                    }
+                    pointer="cursor"
+                    width="100%"
+                    height="44px"
+                    backgroundColor="#fccfd0"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    borderRadius="0 0 4px 4px"
+                  >
+                    <Text fontSize="14px" textColor="#d9595d">
+                      ✗ I don't know
+                    </Text>
+                  </Box>
+                </Box>
+              ) : null}
+            </Box>
+          ) : (
+            <Box
+              marginBottom={3}
+              width="100%"
+              height="320px"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              boxShadow="0 4px 6px rgb(0 0 0 / 10%)"
+              borderRadius="4px"
+            >
               <Congratscard />
-            )}
-            {btnGroup}
-          </Box>
+              <Box height="auto" width="100%">
+                <Box
+                  onClick={() => {
+                    console.log("Restart!");
+                    reset(isRandom);
+                    // handleToggleRecord();
+                  }}
+                  pointer="cursor"
+                  width="100%"
+                  height="44px"
+                  backgroundColor="#bcf5cc"
+                  display="flex"
+                  flexDirection="row"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderRadius="0 0 4px 4px"
+                >
+                  <Icon name="redo" size={16} fillColor="#37b95c" />
+                  <Text fontSize="16px" textColor="#37b95c" marginX="6px">
+                    Restart
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
           <ProgressBar
             masteredRecordsNum={masteredRecordsNum}
             reviewingRecordsNum={reviewingRecordsNum}
