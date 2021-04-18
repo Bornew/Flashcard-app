@@ -14,12 +14,7 @@ import {
 
 import { ConfigKeys } from "./settings";
 
-export default function SettingsForm({
-  setIsSettingsVisible,
-  settings,
-  isRandom,
-  setIsRandom,
-}) {
+export default function SettingsForm({ setIsSettingsVisible, settings }) {
   const modeOptions = [
     { value: "random", label: "Random" },
     { value: "normal", label: "Normal" },

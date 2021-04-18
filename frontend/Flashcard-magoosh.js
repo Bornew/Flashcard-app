@@ -53,13 +53,16 @@ export default function FlashcardMagoosh({
         backgroundColor="white"
         alignItems="center"
         justifyContent="center"
-        overflow="hidden"
+        // overflow="hidden"
       >
         <Box
-          marginTop={shouldShowAnswer ? "56px" : "0"}
+          marginTop={shouldShowAnswer ? "48px" : "0"}
           marginBottom={shouldShowAnswer ? "20px" : "0"}
-          height="auto"
-          marginX={5}
+          height={shouldShowAnswer ? "100px" : "280px"}
+          marginX={4}
+          overflow="auto"
+          display="flex"
+          alignItems="center"
         >
           <CustomCellRenderer
             record={record}

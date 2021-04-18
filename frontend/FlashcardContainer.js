@@ -9,6 +9,7 @@ import {
   Text,
   Icon,
   Switch,
+  loadCSSFromString,
 } from "@airtable/blocks/ui";
 import FlashcardMagoosh from "./Flashcard-magoosh";
 import Congratscard from "./Congratscard";
@@ -374,6 +375,12 @@ export default function FlashcardContainer({
     }
   }, [records]);
 
+  const switchStyle = `
+    outline: none
+  `;
+
+  loadCSSFromString(switchStyle);
+
   return (
     <Fragment>
       <Box
@@ -416,7 +423,8 @@ export default function FlashcardContainer({
                   size="large"
                   backgroundColor="transparent"
                   width="60px"
-                  outline="none"
+                  // style="outline: none"
+                  // outline="none"
                 />
               </Box>
               {/* </FormField> */}
@@ -517,6 +525,7 @@ export default function FlashcardContainer({
                   alignItems="center"
                   justifyContent="center"
                   borderRadius="0 0 4px 4px"
+                  style={{ cursor: "pointer" }}
                 >
                   <Icon name="redo" size={16} fillColor="#37b95c" />
                   <Text fontSize="16px" textColor="#37b95c" marginX="6px">

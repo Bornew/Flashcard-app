@@ -80,11 +80,9 @@ function FlashcardApp() {
         )}
       </Box>
       {isSettingsVisible && (
-        <SettingsForm
+        <SettingDialog
           setIsSettingsVisible={setIsSettingsVisible}
           settings={settings}
-          isRandom={isRandom}
-          setIsRandom={setIsRandom}
         />
       )}
     </Box>
